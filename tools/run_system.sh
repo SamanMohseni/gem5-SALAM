@@ -8,6 +8,8 @@ BUILD=False
 DEBUG=False
 PRINT_TO_FILE=False
 VALGRIND=False
+WORKLOAD_EXTRAS=""
+WORKLOAD_EXTRAS_ADDRS=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -46,6 +48,16 @@ while [[ $# -gt 0 ]]; do
       ;;
     -v|--valgrind)
       VALGRIND=True
+      shift # past argument
+      shift # past value
+      ;;
+    --workload-extras)
+      WORKLOAD_EXTRAS="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --workload-extras-addrs)
+      WORKLOAD_EXTRAS_ADDRS="$2"
       shift # past argument
       shift # past value
       ;;
@@ -111,7 +123,7 @@ RUN_SCRIPT="$BINARY $DEBUG_FLAGS --outdir=$OUTDIR \
 			--accpath=$M5_PATH/$BENCH_PATH \
 			--accbench=$BENCH $CACHE_OPTS"
 
-if (! "$M5_PATH"/tools/SALAM-Configurator/systembuilder.py --sys-name "$BENCH" --bench-path "$BENCH_PATH" --config-name $CONFIG_NAME) then
+if (! "$M5_PATH"/tools/SALAM-Configurator/systembuilder.py --sys-name "$BENCH" --bench-path "$BENCH_PATH" --config-name $CONFIG_NAME --workload-extras $WORKLOAD_EXTRAS --workload-extras-addrs $WORKLOAD_EXTRAS_ADDRS) then
 	echo "Configurator failed"
 	exit 1
 fi
