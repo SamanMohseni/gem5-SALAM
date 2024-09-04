@@ -51,6 +51,18 @@ def parse_cur_args():
         required=False,
         default=None
     )
+    argparser.add_argument(
+        '--workload-extras',
+        help="Path to Workload Binary File Directories Relative to bench-path",
+        required=False,
+        default=None
+    )
+    argparser.add_argument(
+        '--workload-extras-addrs',
+        help="Addresses on memory where workload-extras would be loaded",
+        required=False,
+        default=None
+    )
     return argparser.parse_args()
 
 
@@ -318,8 +330,22 @@ def main():
                     config_path + "fs_" + file_name + ".py")
     f = open(config_path + "fs_" + file_name + ".py", "r")
     fullSystem = f.readlines()
-    fullSystem[65] = "import " + file_name
-    fullSystem[229] = "        " + file_name + ".makeHWAcc(args, test_sys)\n"
+    fullSystem[65] = "import " + file_name + "\n"
+    workload_extras_str = workload_extras_addrs_str = ""
+    if args.workload_extras:
+        dirs = args.workload_extras.split(',')
+        quoted_dirs = [f'"{working_dir}{dir.strip()}"' for dir in dirs]
+        workload_extras_str = (" " * 8 + "test_sys.workload.extras = ["
+                               + quoted_dirs[0])
+        for i in range(1, len(quoted_dirs)):
+            workload_extras_str += ",\n" + " " * 36 + quoted_dirs[i]
+        workload_extras_str += "]\n"
+    if args.workload_extras_addrs:
+        workload_extras_addrs_str = (" " * 8
+                                     + "test_sys.workload.extras_addrs = ["
+                                     + args.workload_extras_addrs + "]\n")
+    fullSystem[140] = workload_extras_str + workload_extras_addrs_str + "\n"
+    fullSystem[229] = " " * 8 + file_name + ".makeHWAcc(args, test_sys)\n"
     f = open(config_path + "fs_" + file_name + ".py", "w")
     f.writelines(fullSystem)
     # Warn if the size is greater than allowed
